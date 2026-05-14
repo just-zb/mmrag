@@ -76,3 +76,11 @@ frontend/src/typings/auto-imports.d.ts
 frontend/public/languages
 frontend/public/themes
 src/main/resources/application.yml~
+
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Frontend is maintained out of band; not tracked on the publish branch
+frontend/
