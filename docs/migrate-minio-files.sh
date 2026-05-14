@@ -5,7 +5,7 @@
 MYSQL_HOST="localhost"
 MYSQL_USER="root"
 MYSQL_PASS="123456"
-MYSQL_DB="PaiSmart"
+MYSQL_DB="mmrag"
 MINIO_ALIAS="myminio"
 MINIO_BUCKET="uploads"
 

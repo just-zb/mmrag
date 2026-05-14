@@ -1,4 +1,4 @@
-# PaiSmart
+# mmrag
 
 An enterprise multimodal retrieval-augmented question-answering (RAG) system. Ingests text and embedded images from `.docx` documents into a single Elasticsearch index, supports two ingestion architectures and four retrieval strategies behind one runtime switch, and generates answers with a vision-capable LLM that receives both the textual context and the retrieved images.
 
@@ -93,8 +93,8 @@ Both architectures (A and B) converge on this delivery layer.
 ## Project layout
 
 ```
-src/main/java/com/yizhaoqi/smartpai/
-├── SmartPaiApplication.java
+src/main/java/com/baozhu/mmrag/
+├── MmragApplication.java
 ├── client/
 │   ├── ClaudeVisionClient.java          # Anthropic API: captioning + multimodal generation
 │   ├── CohereRerankerClient.java        # Cohere Rerank v3 cross-encoder

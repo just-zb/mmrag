@@ -2,7 +2,7 @@ server:
   port: 8081 # 指定端口号
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/PaiSmart?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/mmrag?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -87,7 +87,7 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.boot.autoconfigure.web.servlet: DEBUG
     org.springframework.security: DEBUG
-    com.yizhaoqi.smartpai.service: DEBUG
+    com.baozhu.mmrag.service: DEBUG
     io.minio: DEBUG
 
 log4j:
@@ -113,7 +113,7 @@ embedding:
 ai:
   prompt:
     rules: |
-      你是派聪明知识助手，须遵守：
+      你是知识库问答助手，须遵守：
       1. 仅用简体中文作答。
       2. 回答需先给结论，再给论据。
       3. 如引用参考信息，请在句末加 (来源#编号: 文件名)。

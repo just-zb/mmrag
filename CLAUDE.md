@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PaiSmart (派聪明) is an enterprise-grade AI knowledge management system built with RAG (Retrieval-Augmented Generation) technology. It provides intelligent document processing and retrieval capabilities using a modern tech stack including Spring Boot, Vue 3, Elasticsearch, and AI services.
+mmrag is an enterprise-grade AI knowledge management system built with RAG (Retrieval-Augmented Generation) technology. It provides intelligent document processing and retrieval capabilities using a modern tech stack including Spring Boot, Vue 3, Elasticsearch, and AI services.
 
 ## Development Environment Setup
 
@@ -74,8 +74,8 @@ pnpm preview
 
 ### Backend Structure
 ```
-src/main/java/com/yizhaoqi/smartpai/
-├── SmartPaiApplication.java      # Main application entry
+src/main/java/com/baozhu/mmrag/
+├── MmragApplication.java      # Main application entry
 ├── client/                       # External API clients (DeepSeek, Embedding)
 ├── config/                       # Configuration classes (Security, JWT, etc.)
 ├── consumer/                     # Kafka consumers for async processing
@@ -292,8 +292,8 @@ Lombok was bumped 1.18.30 → 1.18.36 in P1a for forward compatibility with newe
 ```
 pom.xml                                                       # +poi-ooxml 5.2.5, lombok 1.18.36
 .gitignore                                                    # +.env, +frontend/
-src/main/java/com/yizhaoqi/smartpai/utils/DocxImageExtractor.java
-src/test/java/com/yizhaoqi/smartpai/utils/DocxImageExtractorTest.java
+src/main/java/com/baozhu/mmrag/utils/DocxImageExtractor.java
+src/test/java/com/baozhu/mmrag/utils/DocxImageExtractorTest.java
 ```
 
 ### Where the thesis side lives
@@ -304,4 +304,4 @@ Thesis source (LaTeX + figures) is in a separate repo at
 avoids naming this codebase ("the implemented system" / "the backing
 system" / "our system") to satisfy the university's anti-plagiarism
 naming convention; this repository's docs and code are free to use the
-PaiSmart name internally.
+mmrag name internally.
