@@ -1,4 +1,13 @@
 {
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "default": {
+          "type": "english"
+        }
+      }
+    }
+  },
   "mappings": {
     "properties": {
       "fileMd5": {
@@ -7,16 +16,37 @@
       "chunkId": {
         "type": "integer"
       },
+      "contentType": {
+        "type": "keyword",
+        "doc_values": true
+      },
       "textContent": {
         "type": "text",
-        "analyzer": "ik_max_word",
-        "search_analyzer": "ik_smart"
+        "analyzer": "english"
+      },
+      "imageUri": {
+        "type": "keyword",
+        "doc_values": false,
+        "index": false
+      },
+      "caption": {
+        "type": "text",
+        "analyzer": "english",
+        "index": false
+      },
+      "pageNum": {
+        "type": "integer"
       },
       "vector": {
         "type": "dense_vector",
-        "dims": 2048,
+        "dims": 1152,
         "index": true,
-        "similarity": "cosine"
+        "similarity": "cosine",
+        "index_options": {
+          "type": "hnsw",
+          "m": 16,
+          "ef_construction": 100
+        }
       },
       "modelVersion": {
         "type": "keyword"
