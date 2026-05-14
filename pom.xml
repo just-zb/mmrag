@@ -28,7 +28,7 @@
     </scm>
     <properties>
         <java.version>17</java.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
     </properties>
     <dependencies>
         <dependency>
@@ -126,6 +126,14 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-parsers-standard-package</artifactId>
             <version>2.9.1</version>
+        </dependency>
+        <!-- Apache POI for .docx structural parsing (image extraction with -->
+        <!-- paragraph-level context capture; see DocxImageExtractor). The -->
+        <!-- version is aligned with Tika 2.9.1's transitive POI 5.2.x. -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
         </dependency>
         <!-- Apache Commons IO -->
         <dependency>
