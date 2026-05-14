@@ -126,3 +126,51 @@ ai:
     temperature: 0.3
     max-tokens: 2000
     top-p: 0.9
+
+# -------------------------------------------------------------------
+# Multimodal RAG configuration (thesis evaluation)
+# -------------------------------------------------------------------
+# Drives the F1 (ingestion architecture) and F2 (retrieval strategy)
+# axes of the 3 x 4 factorial described in thesis Chapter 4. The legacy
+# DashScope text-only path remains usable by setting
+# multimodal.embedding.strategy=dashscope.
+multimodal:
+  embedding:
+    # siglip | caption | dashscope
+    strategy: ${EMBEDDING_STRATEGY:siglip}
+    siglip:
+      endpoint: ${SIGLIP_ENDPOINT:https://example.huggingface.cloud/siglip-so400m}
+      api-key: ${SIGLIP_API_KEY:}
+      dim: 1152
+      timeout-seconds: 30
+  retrieval:
+    # BM25_ONLY | DENSE_ONLY | WEIGHTED_HYBRID | HYBRID_PLUS_RERANK
+    default-mode: ${RETRIEVAL_MODE:HYBRID_PLUS_RERANK}
+    default-top-k: 5
+    rerank-pool-size: 30
+    hybrid-alpha: 0.5
+  reranker:
+    # cohere | jina | none
+    provider: ${RERANKER_PROVIDER:cohere}
+    endpoint: https://api.cohere.com/v1/rerank
+    api-key: ${COHERE_API_KEY:}
+    model: rerank-multilingual-v3.0
+    timeout-seconds: 15
+  generator:
+    # claude | gpt-4o | deepseek
+    provider: ${GENERATOR_PROVIDER:claude}
+    endpoint: https://api.anthropic.com/v1/messages
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: claude-3-5-sonnet-20241022
+    max-tokens: 2000
+    temperature: 0.3
+    # llm | ui | both
+    image-routing: both
+  captioning:
+    # claude | gpt-4o | qwen-vl  (the same Claude key above is reused
+    # when provider=claude, so a single VLM serves both captioning
+    # during ingestion and answer generation at query time)
+    provider: claude
+  tracer:
+    enabled: ${RAGAS_TRACER_ENABLED:false}
+    output-path: ./logs/ragas-trace.jsonl
