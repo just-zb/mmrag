@@ -69,6 +69,7 @@ public class HybridSearchService {
             logger.debug("用户 {} 的有效组织标签: {}", userId, userEffectiveTags);
 
             // 获取用户的数据库ID用于权限过滤
+            // 因为userId可能是数字,也可能是用户名字
             String userDbId = getUserDbId(userId);
             logger.debug("用户 {} 的数据库ID: {}", userId, userDbId);
 
@@ -86,16 +87,23 @@ public class HybridSearchService {
             SearchResponse<EsDocument> response = esClient.search(s -> {
                         s.index("knowledge_base");
                         // KNN 召回
-                        int recallK = topK * 30; // KNN 召回窗口
+                        int recallK = topK * 30; // KNN 召回窗口，宽网捕鱼，过召回策略
+                // knn是主查询，计算出knn分数0-1，
                         s.knn(kn -> kn
                                 .field("vector")
                                 .queryVector(queryVector)
-                                .k(recallK)
-                                .numCandidates(recallK)
+                                .k(recallK) // 最终返回最相似的前 150 个
+                                .numCandidates(recallK) // HNSW 图遍历的候选节点数
+                                // ES 的向量搜索基于 HNSW 近似算法，不是精确遍历所有文档，numCandidates表示在HNSW图中探索多少个候选节点
+                                // k=150表示保留多少个结果
                         );
                         // 必须命中关键词 + 权限过滤
+                // knn和query并行执行，取交集，并且把must——or的分数叠加到knn分数上。
                         s.query(q -> q.bool(b -> b
+                                // must match计算BM25分数，BM25是es默认的关键词匹配算法
+                                //must过滤了没有一个关键词匹配的内容，并且计算 BM25_must 分数，这个分数会叠加到 KNN 分数上
                                 .must(mst -> mst.match(m -> m.field("textContent").query(query)))
+                                //filter是权限过滤，不计算分数，
                                 .filter(f -> f.bool(bf -> bf
                                         // 条件1: 用户可访问自己的文档
                                         .should(s1 -> s1.term(t -> t.field("userId").value(userDbId)))
@@ -117,12 +125,22 @@ public class HybridSearchService {
                                 ))
                         ));
 
-                        // 第二阶段 BM25 rescore
+                        // 第二阶段 BM25 rescore，rescore是二次重排，主查询返回了recallK的文档，而rescore在主查询基础上
+                //重新精排，参考KNN和BM25的分数。
                         s.rescore(r -> r
                                 .windowSize(recallK)
                                 .query(rq -> rq
+                                        //最终分 = KNN分 × 0.2 + BM25分 × 1.0
+                                        // KNN分数为0-1，BM25是0-n，取决于词频和文档数目
+                                        //0.2压低了KNN的影响，让BM25主导排名，KNN是微调因子
+                                        //最终分 = (KNN分 + BM25_must分) × 0.2 + BM25_rescore分 × 1.0
                                         .queryWeight(0.2d)               // 保留部分 KNN 分
+                                        // KNN是向量搜索，语义匹配
                                         .rescoreQueryWeight(1.0d)        // BM25 主导
+                                        //BM25是关键词匹配，基于词频统计
+                                        //下面是BM25重排查询，计算出BM25_rescore分。跟主查询相比，更严格。主查询宽松召回和must OR，不漏掉文档
+                                        // 这里用and，严格重拍，关键词全部命中的放在前面
+                                        //如果一个文档匹配了所有关键词，那么放在前面，所以是BM25 主导
                                         .query(rqq -> rqq.match(m -> m
                                                 .field("textContent")
                                                 .query(query)
