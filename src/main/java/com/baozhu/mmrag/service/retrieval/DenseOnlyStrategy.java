@@ -1,11 +1,14 @@
 package com.baozhu.mmrag.service.retrieval;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.baozhu.mmrag.entity.EsDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,8 +22,6 @@ import java.util.List;
  * favours B over A because B's caption embeddings sit in the same SigLIP
  * text space as the query, while A relies on the learned text-to-image
  * bridge).
- *
- * <p>Structural placeholder; see class-level note on Bm25OnlyStrategy.
  */
 @Component
 public class DenseOnlyStrategy implements RetrievalStrategy {
@@ -43,13 +44,39 @@ public class DenseOnlyStrategy implements RetrievalStrategy {
         if (request.queryVector() == null) {
             throw new IllegalArgumentException("DENSE_ONLY requires a precomputed query vector");
         }
-        // TODO: build esClient.search(...) with:
-        //   - knn(field="vector", queryVector=request.queryVector(),
-        //         k=request.topK(), numCandidates=max(topK*10, 100))
-        //   - permission filter as in Bm25OnlyStrategy
-        // and map hits -> List<EsDocument>.
-        logger.debug("DENSE_ONLY search stub — topK={}, dim={}",
-                request.topK(), request.queryVector().length);
-        return List.of();
+        final List<Float> qv = boxed(request.queryVector());
+        final int numCandidates = Math.max(request.topK() * 10, 100);
+        try {
+            SearchResponse<EsDocument> response = esClient.search(s -> s
+                            .index("knowledge_base")
+                            .size(request.topK())
+                            .knn(kn -> kn
+                                    .field("vector")
+                                    .queryVector(qv)
+                                    .k(request.topK())
+                                    .numCandidates(numCandidates))
+                            .query(q -> q.bool(b -> b
+                                    .filter(f -> f.bool(bf -> PermissionFilter.applyTo(
+                                            bf, request.userDbId(), request.userOrgTags()))))),
+                    EsDocument.class);
+            return collectHits(response);
+        } catch (Exception e) {
+            logger.error("DENSE_ONLY search failed: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    static List<Float> boxed(float[] xs) {
+        List<Float> out = new ArrayList<>(xs.length);
+        for (float x : xs) out.add(x);
+        return out;
+    }
+
+    static List<EsDocument> collectHits(SearchResponse<EsDocument> response) {
+        List<EsDocument> hits = new ArrayList<>();
+        response.hits().hits().forEach(h -> {
+            if (h.source() != null) hits.add(h.source());
+        });
+        return hits;
     }
 }

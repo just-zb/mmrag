@@ -1,5 +1,6 @@
 package com.baozhu.mmrag.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -41,7 +42,18 @@ public class EsDocument {
     private String modelVersion;   // embedder version tag
     private String userId;         // owning user (tenant)
     private String orgTag;         // owning organisation tag
-    private boolean isPublic;      // public visibility flag
+
+    /**
+     * Public visibility flag. The {@link com.fasterxml.jackson.annotation.JsonProperty}
+     * pin keeps Jackson from stripping the {@code is} prefix during
+     * serialisation (Jackson would otherwise produce {@code "public": true}
+     * for a {@code boolean isPublic} field with the Lombok-generated
+     * {@code isPublic()} getter), which would mismatch the {@code isPublic}
+     * field name in {@code es-mappings/knowledge_base.json} and the
+     * permission-filter clauses in the retrieval strategies.
+     */
+    @JsonProperty("isPublic")
+    private boolean isPublic;
 
     public EsDocument() {
     }
