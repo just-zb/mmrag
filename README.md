@@ -1,3 +1,29 @@
+> ## Master's Thesis Companion Repository
+>
+> | | |
+> |---|---|
+> | **Author** | Bao Zhu |
+> | **Student ID** | 019733216 |
+> | **Email** | ice.michael.zhu@gmail.com |
+> | **University** | University of Helsinki |
+> | **Faculty** | Faculty of Science |
+> | **Department** | Department of Computer Science |
+> | **Programme** | MSc in Computer Science (CSM), Software Track |
+> | **Supervisor** | Prof. Jiaheng Lu |
+> | **Thesis title** | *Multimodal RAG Question-Answering Optimization for Enterprise Knowledge Bases* |
+> | **Defense** | 12 May 2026 |
+> | **Submission** | 20 May 2026 |
+>
+> This repository is the backing system for the thesis above. The
+> thesis text refers to it with neutral noun phrases ("the implemented
+> system" / "the proposed system" / "the backing system" / "our
+> system") per the university's anti-plagiarism naming convention; the
+> code on this branch is its actual implementation. Examiners and
+> readers seeking the full source for the experimental setup of
+> Chapter 4 should look here.
+
+---
+
 # mmrag
 
 An enterprise multimodal retrieval-augmented question-answering (RAG) system. Ingests text and embedded images from `.docx` documents into a single Elasticsearch index, supports two ingestion architectures and four retrieval strategies behind one runtime switch, and generates answers with a vision-capable LLM that receives both the textual context and the retrieved images.
