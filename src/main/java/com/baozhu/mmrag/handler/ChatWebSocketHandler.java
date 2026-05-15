@@ -9,24 +9,29 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.baozhu.mmrag.service.ChatHandler;
+import com.baozhu.mmrag.service.MultimodalChatService;
 import com.baozhu.mmrag.utils.JwtUtils;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketHandler.class);
     private final ChatHandler chatHandler;
+    private final MultimodalChatService multimodalChatService;
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JwtUtils jwtUtils;
-    
+
     // 内部指令令牌 - 可以从配置文件读取
     private static final String INTERNAL_CMD_TOKEN = "WSS_STOP_CMD_" + System.currentTimeMillis() % 1000000;
 
-    public ChatWebSocketHandler(ChatHandler chatHandler, JwtUtils jwtUtils) {
+    public ChatWebSocketHandler(ChatHandler chatHandler,
+                                MultimodalChatService multimodalChatService,
+                                JwtUtils jwtUtils) {
         this.chatHandler = chatHandler;
+        this.multimodalChatService = multimodalChatService;
         this.jwtUtils = jwtUtils;
     }
 
@@ -83,8 +88,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 }
             }
             
-            // 普通聊天消息处理（保持向下兼容）
-            chatHandler.processMessage(userId, payload, session);
+            // Thesis-aligned multimodal chat path: dispatches to one of the
+            // four RetrievalStrategy beans, applies image dual-routing, and
+            // emits a Ragas trace line on completion. The legacy text-only
+            // chatHandler.processMessage(...) path remains injectable above
+            // for fallback / debugging.
+            multimodalChatService.processMultimodalMessage(userId, payload, session);
             
         } catch (Exception e) {
             logger.error("处理消息出错，用户ID: {}，会话ID: {}，错误: {}", 
