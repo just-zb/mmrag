@@ -18,11 +18,41 @@ import org.springframework.context.annotation.Configuration;
 public class MultimodalProperties {
 
     private Embedding embedding = new Embedding();
+    private Ingestion ingestion = new Ingestion();
     private Retrieval retrieval = new Retrieval();
     private Reranker reranker = new Reranker();
     private Generator generator = new Generator();
     private Captioning captioning = new Captioning();
     private Tracer tracer = new Tracer();
+
+    /**
+     * Selects which kinds of image rows the ingestion pipeline produces for a
+     * .docx upload. The thesis evaluates three F1 cells, each corresponding
+     * to one architecture:
+     *
+     * <ul>
+     *   <li>{@code TEXT_ONLY} — only TEXT rows are indexed; image bytes are
+     *       still uploaded to MinIO and persisted to {@code image_chunk} for
+     *       record-keeping but no IMAGE_* row reaches Elasticsearch.</li>
+     *   <li>{@code UNIFIED} — Architecture A. Each extracted image is
+     *       embedded by the SigLIP image tower and indexed as IMAGE_UNIFIED.
+     *       Reranker and dense retrieval can reach it; BM25 cannot.</li>
+     *   <li>{@code DESCRIPTION} — Architecture B. Each extracted image is
+     *       captioned by the vision-language model with full document
+     *       context, then the caption is embedded by the SigLIP text tower
+     *       and indexed as IMAGE_DESCRIPTION. BM25 can reach this row
+     *       through the caption text.</li>
+     * </ul>
+     *
+     * <p>Reindex when this changes. The application.yml key is
+     * {@code multimodal.ingestion.architecture}.
+     */
+    public static class Ingestion {
+        /** {@code TEXT_ONLY} | {@code UNIFIED} | {@code DESCRIPTION}. */
+        private String architecture = "DESCRIPTION";
+        public String getArchitecture() { return architecture; }
+        public void setArchitecture(String a) { this.architecture = a; }
+    }
 
     public static class Embedding {
         /** {@code siglip} (default) | {@code caption} | {@code dashscope}. */
@@ -134,6 +164,8 @@ public class MultimodalProperties {
 
     public Embedding getEmbedding() { return embedding; }
     public void setEmbedding(Embedding e) { this.embedding = e; }
+    public Ingestion getIngestion() { return ingestion; }
+    public void setIngestion(Ingestion i) { this.ingestion = i; }
     public Retrieval getRetrieval() { return retrieval; }
     public void setRetrieval(Retrieval r) { this.retrieval = r; }
     public Reranker getReranker() { return reranker; }

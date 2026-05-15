@@ -28,6 +28,9 @@ public class ParseService {
     @Autowired
     private DocumentVectorRepository documentVectorRepository;
 
+    @Autowired(required = false)
+    private MultimodalIngestionService multimodalIngestionService;
+
     @Value("${file.parsing.chunk-size}")
     private int chunkSize;
 
@@ -60,10 +63,18 @@ public class ParseService {
             String userId, String orgTag, boolean isPublic) throws IOException, TikaException {
         logger.info("开始流式解析文件，fileMd5: {}, userId: {}, orgTag: {}, isPublic: {}",
                 fileMd5, userId, orgTag, isPublic);
-        
+
         checkMemoryThreshold();
 
-        try (BufferedInputStream bufferedStream = new BufferedInputStream(fileStream, bufferSize)) {
+        // Buffer the stream once: the text path needs a stream, the image
+        // path (DocxImageExtractor) needs a stream that can be opened
+        // independently. For 8 docs of a few MB each (the thesis corpus
+        // size), this is well below the 8 MB heap headroom typical of
+        // Spring Boot defaults. Larger documents would warrant a temp-file
+        // buffer instead.
+        byte[] fileBytes = fileStream.readAllBytes();
+
+        try (ByteArrayInputStream textStream = new ByteArrayInputStream(fileBytes)) {
             // 创建一个流式处理器，它会在内部处理父块的切分和子块的保存
             StreamingContentHandler handler = new StreamingContentHandler(fileMd5, userId, orgTag, isPublic);
             Metadata metadata = new Metadata();
@@ -72,13 +83,26 @@ public class ParseService {
 
             // Tika的parse方法会驱动整个流式处理过程
             // 当handler的characters方法接收到足够数据时，会触发分块、切片和保存
-            parser.parse(bufferedStream, handler, metadata, context);
+            parser.parse(textStream, handler, metadata, context);
 
             logger.info("文件流式解析和入库完成，fileMd5: {}", fileMd5);
 
         } catch (SAXException e) {
             logger.error("文档解析失败，fileMd5: {}", fileMd5, e);
             throw new RuntimeException("文档解析失败", e);
+        }
+
+        // Multimodal image-side ingestion (.docx images via Apache POI; no-op
+        // for non-.docx formats). Runs after the text path so a failure here
+        // does not lose the text indexing. Optional: if the multimodal
+        // service is not on the classpath / not auto-wired (e.g. legacy
+        // text-only deployment), skip silently.
+        if (multimodalIngestionService != null) {
+            try {
+                multimodalIngestionService.ingestImages(fileMd5, fileBytes, userId, orgTag, isPublic);
+            } catch (Exception e) {
+                logger.warn("Image-side ingestion failed for fileMd5={}: {}", fileMd5, e.getMessage(), e);
+            }
         }
     }
 

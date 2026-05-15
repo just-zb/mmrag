@@ -135,6 +135,12 @@ ai:
 # DashScope text-only path remains usable by setting
 # multimodal.embedding.strategy=dashscope.
 multimodal:
+  ingestion:
+    # TEXT_ONLY | UNIFIED | DESCRIPTION
+    # Selects which kinds of image rows the .docx ingestion pipeline produces.
+    # Reindex when switching values — this is the F1 axis of the thesis
+    # 3 x 4 factorial.
+    architecture: ${INGESTION_ARCHITECTURE:DESCRIPTION}
   embedding:
     # siglip | caption | dashscope
     strategy: ${EMBEDDING_STRATEGY:siglip}
