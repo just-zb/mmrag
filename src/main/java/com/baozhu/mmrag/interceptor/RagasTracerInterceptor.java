@@ -1,6 +1,7 @@
 package com.baozhu.mmrag.interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.baozhu.mmrag.config.MultimodalProperties;
 import com.baozhu.mmrag.entity.EsDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +59,12 @@ public class RagasTracerInterceptor {
     private String outputPath;
 
     private final ObjectMapper objectMapper;
+    private final MultimodalProperties multimodalProperties;
 
-    public RagasTracerInterceptor(ObjectMapper objectMapper) {
+    public RagasTracerInterceptor(ObjectMapper objectMapper,
+                                  MultimodalProperties multimodalProperties) {
         this.objectMapper = objectMapper;
+        this.multimodalProperties = multimodalProperties;
     }
 
     /**
@@ -80,6 +84,7 @@ public class RagasTracerInterceptor {
         try {
             Map<String, Object> record = new LinkedHashMap<>();
             record.put("ts", Instant.now().toString());
+            record.put("ingestion", multimodalProperties.getIngestion().getArchitecture());
             record.put("mode", mode);
             record.put("params", Map.of(
                     "topK", topK,
