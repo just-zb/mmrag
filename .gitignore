@@ -89,3 +89,6 @@ frontend/
 # multimodal-RAG backend; deleted from the publish branch)
 homepage/
 .qoder/
+
+# Internal Claude Code project context (not for the public repo)
+CLAUDE.md
