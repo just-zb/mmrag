@@ -14,13 +14,7 @@
 > | **Defense** | 12 May 2026 |
 > | **Submission** | 20 May 2026 |
 >
-> This repository is the backing system for the thesis above. The
-> thesis text refers to it with neutral noun phrases ("the implemented
-> system" / "the proposed system" / "the backing system" / "our
-> system") per the university's anti-plagiarism naming convention; the
-> code on this branch is its actual implementation. Examiners and
-> readers seeking the full source for the experimental setup of
-> Chapter 4 should look here.
+> This repository is the backing system for the thesis above.
 
 ---
 
@@ -203,5 +197,3 @@ Lombok annotations require JDK 17 on the build path; default JDK 22 fails at com
 ## Status
 
 This branch is the multimodal-RAG codebase that backs the MSc thesis *Multimodal RAG Question-Answering Optimization for Enterprise Knowledge Bases* (University of Helsinki, 2026). The thesis evaluates the system end-to-end under a 3 × 4 full-factorial design (3 ingestion architectures × 4 retrieval strategies × 6 metrics × 30 QA pairs).
-
-The roadmap and per-phase status are tracked in [CLAUDE.md](./CLAUDE.md).
